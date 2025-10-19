@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(ls:*)",
+      "Bash(env)",
+      "Bash(claude auth logout)",
+      "Bash(claude auth:*)",
+      "Bash(claude setup-token:*)"
+    ],
+    "deny": []
+  }
+}

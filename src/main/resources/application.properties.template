@@ -1,0 +1,53 @@
+server.port=9090
+
+spring.application.name=chatbot-poc
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+# OpenAI
+openai.api-key=YOUR_OPENAI_API_KEY_HERE
+openai.api-url=https://api.openai.com/v1
+
+# Pinecone Configuration
+pinecone.api-key=YOUR_PINECONE_API_KEY_HERE
+pinecone.api-url=YOUR_PINECONE_INDEX_URL_HERE
+pinecone.index-name=chatbot-poc
+pinecone.environment=us-east-1-aws
+pinecone.project-id=YOUR_PINECONE_PROJECT_ID_HERE
+
+# AWS Configuration (using IAM role for production, credentials for local dev)
+aws.region=us-east-1
+# For local development only - remove these for production deployment with IAM role
+aws.access-key-id=YOUR_AWS_ACCESS_KEY_ID_HERE
+aws.secret-access-key=YOUR_AWS_SECRET_ACCESS_KEY_HERE
+
+# AWS DynamoDB Configuration
+aws.dynamodb.users-table=chatbot-users
+aws.dynamodb.knowledge-table=chatbot-knowledge
+aws.dynamodb.conversations-table=chatbot-conversations
+aws.dynamodb.messages-table=chatbot-messages
+
+# AWS S3 Configuration
+aws.s3.bucket-name=chatbot-knowledge-files
+aws.s3.region=us-east-1
+
+# AWS SQS Configuration
+aws.sqs.knowledge-processing-queue=knowledge-processing-queue
+aws.sqs.region=us-east-1
+
+# Spring Cloud AWS Configuration
+spring.cloud.aws.region.static=${aws.region}
+# Use default credential chain (IAM role) for production, explicit credentials for local dev
+spring.cloud.aws.credentials.use-default-aws-credentials-chain=true
+# Fallback to explicit credentials if default chain fails (local dev only)
+spring.cloud.aws.credentials.access-key=${aws.access-key-id}
+spring.cloud.aws.credentials.secret-key=${aws.secret-access-key}
+spring.cloud.aws.stack.auto=false
+
+# Logging
+logging.level.com.example.chatbot=DEBUG
+logging.level.org.springframework.web=INFO
+
+# Spring Boot DevTools Configuration (disabled to avoid ClassLoader issues)
+spring.devtools.restart.enabled=false
+spring.devtools.livereload.enabled=false

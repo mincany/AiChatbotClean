@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot Demo - Knowledge Base Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            background: #f7fafc;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-input-display:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .file-input-display.dragover {
+            border-color: #667eea;
+            background: #e6fffa;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #718096;
+        }
+
+        .btn-success {
+            background: #48bb78;
+        }
+
+        .btn-danger {
+            background: #f56565;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+
+        .chat-full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chat-container {
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.assistant {
+            background: white;
+            border: 1px solid #e2e8f0;
+            margin-right: auto;
+        }
+
+        .message.system {
+            background: #fed7d7;
+            color: #742a2a;
+            text-align: center;
+            margin: 0 auto;
+            font-style: italic;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fbb6ce;
+            color: #97266d;
+        }
+
+        .status-processing {
+            background: #fbd38d;
+            color: #975a16;
+        }
+
+        .status-completed {
+            background: #9ae6b4;
+            color: #22543d;
+        }
+
+        .status-failed {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .knowledge-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .knowledge-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .knowledge-item:last-child {
+            border-bottom: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-key-display {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Chatbot Demo</h1>
+            <p>Knowledge Base Assistant - Register, Upload, and Chat with your documents</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- User Registration -->
+            <div class="card">
+                <h2><span class="icon">👤</span>User Registration</h2>
+                <div id="register-alert"></div>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-email">Email Address</label>
+                        <input type="email" id="register-email" required placeholder="Enter your email">
+                    </div>
+                    <button type="submit" class="btn" id="register-btn">
+                        <span class="btn-text">Register & Get API Key</span>
+                        <span class="loading hidden"></span>
+                    </button>
+                </form>
+                <div id="api-key-display" class="hidden">
+                    <strong>Your API Key (Save this securely!):</strong>
+                    <div class="api-key-display" id="api-key-value"></div>
+                </div>
+            </div>
+
+            <!-- Knowledge Import -->
+            <div class="card">
+                <h2><span class="icon">📁</span>Knowledge Import</h2>
+                <div id="import-alert"></div>
+                <form id="import-form">
+                    <div class="form-group">
+                        <label for="import-api-key">API Key</label>
+                        <input type="password" id="import-api-key" required placeholder="Enter your API key">
+                    </div>
+                    <div class="form-group">
+                        <label for="import-name">Knowledge Base Name</label>
+                        <input type="text" id="import-name" required placeholder="e.g., Company Handbook">
+                    </div>
+                    <div class="form-group">
+                        <label for="import-description">Description (Optional)</label>
+                        <textarea id="import-description" placeholder="Brief description of the content"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="import-file">Upload File</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="import-file" class="file-input" accept=".txt,.pdf,.docx,.md" required>
+                            <div class="file-input-display">
+                                <div>
+                                    <p><strong>📎 Click to select file or drag & drop</strong></p>
+                                    <p style="font-size: 14px; color: #718096; margin-top: 5px;">
+                                        Supported: TXT, PDF, DOCX, MD (Max 10MB)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="selected-file" style="margin-top: 10px; font-size: 14px; color: #4a5568;"></div>
+                    </div>
+                    <button type="submit" class="btn" id="import-btn">
+                        <span class="btn-text">Upload & Process</span>
+                        <span class="loading hidden"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Knowledge Status -->
+            <div class="card">
+                <h2><span class="icon">📊</span>Knowledge Status</h2>
+                <div id="status-alert"></div>
+                <form id="status-form">
+                    <div class="form-group">
+                        <label for="status-api-key">API Key</label>
+                        <input type="password" id="status-api-key" required placeholder="Enter your API key">
+                    </div>
+                    <div class="form-group">
+                        <label for="status-kb-id">Knowledge Base ID</label>
+                        <input type="text" id="status-kb-id" required placeholder="e.g., kb_12345678">
+                    </div>
+                    <button type="submit" class="btn btn-secondary" id="status-btn">
+                        <span class="btn-text">Check Status</span>
+                        <span class="loading hidden"></span>
+                    </button>
+                </form>
+                <div id="status-result" class="hidden" style="margin-top: 20px;">
+                    <h3>Status Details:</h3>
+                    <div id="status-details"></div>
+                </div>
+                <div id="knowledge-list" class="hidden">
+                    <h3>Your Knowledge Bases:</h3>
+                    <div class="knowledge-list" id="knowledge-items"></div>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <div class="card chat-full-width">
+                <h2><span class="icon">💬</span>Chat with AI</h2>
+                <div id="chat-alert"></div>
+                <div class="form-group">
+                    <label for="chat-api-key">API Key</label>
+                    <input type="password" id="chat-api-key" required placeholder="Enter your API key">
+                </div>
+                <div class="form-group">
+                    <label for="chat-kb-id">Knowledge Base ID</label>
+                    <input type="text" id="chat-kb-id" required placeholder="e.g., kb_12345678">
+                </div>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message system">
+                            Welcome! Enter your API key and Knowledge Base ID, then start asking questions about your uploaded documents.
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" class="chat-input" id="chat-input" placeholder="Ask a question about your knowledge base..." disabled>
+                        <button class="btn" id="chat-send-btn" disabled>
+                            <span class="btn-text">Send</span>
+                            <span class="loading hidden"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:9090/api/v1';
+        
+        // State management
+        let userKnowledgeBases = [];
+        let currentApiKey = '';
+
+        // Utility functions
+        function showAlert(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function setButtonLoading(buttonId, loading) {
+            const btn = document.getElementById(buttonId);
+            const text = btn.querySelector('.btn-text');
+            const spinner = btn.querySelector('.loading');
+            
+            if (loading) {
+                text.style.display = 'none';
+                spinner.classList.remove('hidden');
+                btn.disabled = true;
+            } else {
+                text.style.display = 'inline';
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        function addChatMessage(message, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = message;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Auto-fill API keys across forms
+        function syncApiKeys(sourceId) {
+            const sourceValue = document.getElementById(sourceId).value;
+            if (sourceValue) {
+                const apiKeyInputs = ['import-api-key', 'status-api-key', 'chat-api-key'];
+                apiKeyInputs.forEach(id => {
+                    if (id !== sourceId) {
+                        document.getElementById(id).value = sourceValue;
+                    }
+                });
+                currentApiKey = sourceValue;
+                updateChatInterface();
+            }
+        }
+
+        function updateChatInterface() {
+            const chatInput = document.getElementById('chat-input');
+            const chatSendBtn = document.getElementById('chat-send-btn');
+            const apiKey = document.getElementById('chat-api-key').value;
+            const kbId = document.getElementById('chat-kb-id').value;
+            
+            const isReady = apiKey && kbId;
+            chatInput.disabled = !isReady;
+            chatSendBtn.disabled = !isReady;
+            
+            if (isReady) {
+                chatInput.placeholder = 'Ask a question about your knowledge base...';
+            } else {
+                chatInput.placeholder = 'Enter API key and Knowledge Base ID first...';
+            }
+        }
+
+        // File drag and drop handling
+        function setupFileUpload() {
+            const fileInput = document.getElementById('import-file');
+            const fileDisplay = document.querySelector('.file-input-display');
+            const selectedFileDiv = document.getElementById('selected-file');
+
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    selectedFileDiv.innerHTML = `<strong>Selected:</strong> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                }
+            });
+
+            fileDisplay.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.add('dragover');
+            });
+
+            fileDisplay.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.remove('dragover');
+            });
+
+            fileDisplay.addEventListener('drop', function(e) {
+                e.preventDefault();
+                fileDisplay.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const file = files[0];
+                    selectedFileDiv.innerHTML = `<strong>Selected:</strong> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                }
+            });
+        }
+
+        // API Functions
+        async function registerUser(email) {
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || `HTTP ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        async function importKnowledge(apiKey, name, description, file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('name', name);
+            if (description) {
+                formData.append('description', description);
+            }
+
+            const response = await fetch(`${API_BASE_URL}/knowledge/import-multipart`, {
+                method: 'POST',
+                headers: {
+                    'X-API-Key': apiKey
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        async function checkKnowledgeStatus(apiKey, knowledgeBaseId) {
+            const response = await fetch(`${API_BASE_URL}/knowledge/${knowledgeBaseId}/status?api_key=${encodeURIComponent(apiKey)}`, {
+                method: 'GET'
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        async function chatQuery(apiKey, knowledgeBaseId, question) {
+            const response = await fetch(`${API_BASE_URL}/chat/query?api_key=${encodeURIComponent(apiKey)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    knowledgeBaseId,
+                    question
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        // Event Handlers
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            
+            setButtonLoading('register-btn', true);
+            
+            try {
+                const result = await registerUser(email);
+                showAlert('register-alert', 'Registration successful! Your API key has been generated.', 'success');
+                
+                document.getElementById('api-key-value').textContent = result.apiKey;
+                document.getElementById('api-key-display').classList.remove('hidden');
+                
+                // Auto-fill API key in other forms
+                document.getElementById('import-api-key').value = result.apiKey;
+                document.getElementById('status-api-key').value = result.apiKey;
+                document.getElementById('chat-api-key').value = result.apiKey;
+                currentApiKey = result.apiKey;
+                updateChatInterface();
+                
+            } catch (error) {
+                showAlert('register-alert', `Registration failed: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading('register-btn', false);
+            }
+        });
+
+        document.getElementById('import-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const apiKey = document.getElementById('import-api-key').value;
+            const name = document.getElementById('import-name').value;
+            const description = document.getElementById('import-description').value;
+            const file = document.getElementById('import-file').files[0];
+            
+            if (!file) {
+                showAlert('import-alert', 'Please select a file to upload.', 'error');
+                return;
+            }
+            
+            setButtonLoading('import-btn', true);
+            
+            try {
+                const result = await importKnowledge(apiKey, name, description, file);
+                showAlert('import-alert', `Upload successful! Knowledge Base ID: ${result.data.knowledgeBaseId}`, 'success');
+                
+                // Auto-fill the knowledge base ID in other forms
+                document.getElementById('status-kb-id').value = result.data.knowledgeBaseId;
+                document.getElementById('chat-kb-id').value = result.data.knowledgeBaseId;
+                updateChatInterface();
+                
+                // Reset form
+                document.getElementById('import-form').reset();
+                document.getElementById('selected-file').innerHTML = '';
+                
+            } catch (error) {
+                showAlert('import-alert', `Upload failed: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading('import-btn', false);
+            }
+        });
+
+        document.getElementById('status-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const apiKey = document.getElementById('status-api-key').value;
+            const knowledgeBaseId = document.getElementById('status-kb-id').value;
+            
+            setButtonLoading('status-btn', true);
+            
+            try {
+                const result = await checkKnowledgeStatus(apiKey, knowledgeBaseId);
+                const status = result.data.status;
+                const statusClass = `status-${status}`;
+                
+                let statusMessage = '';
+                switch (status) {
+                    case 'completed':
+                        statusMessage = 'Processing completed successfully! Ready for chat.';
+                        break;
+                    case 'processing':
+                        statusMessage = `Processing in progress... Estimated completion: ${result.data.estimatedCompletionTime} minutes`;
+                        break;
+                    case 'failed':
+                        statusMessage = `Processing failed: ${result.data.errorMessage || 'Unknown error'}`;
+                        break;
+                    default:
+                        statusMessage = `Status: ${status}`;
+                }
+                
+                document.getElementById('status-details').innerHTML = `
+                    <p><strong>Knowledge Base ID:</strong> ${knowledgeBaseId}</p>
+                    <p><strong>Status:</strong> <span class="status-indicator ${statusClass}">${status}</span></p>
+                    <p><strong>Message:</strong> ${statusMessage}</p>
+                `;
+                
+                document.getElementById('status-result').classList.remove('hidden');
+                showAlert('status-alert', 'Status retrieved successfully!', 'success');
+                
+            } catch (error) {
+                showAlert('status-alert', `Status check failed: ${error.message}`, 'error');
+                document.getElementById('status-result').classList.add('hidden');
+            } finally {
+                setButtonLoading('status-btn', false);
+            }
+        });
+
+        // Chat functionality
+        async function sendChatMessage() {
+            const apiKey = document.getElementById('chat-api-key').value;
+            const knowledgeBaseId = document.getElementById('chat-kb-id').value;
+            const question = document.getElementById('chat-input').value.trim();
+            
+            if (!question) return;
+            
+            // Add user message to chat
+            addChatMessage(question, 'user');
+            document.getElementById('chat-input').value = '';
+            
+            setButtonLoading('chat-send-btn', true);
+            
+            try {
+                const result = await chatQuery(apiKey, knowledgeBaseId, question);
+                addChatMessage(result.data.response, 'assistant');
+                
+                // Add source information if available
+                if (result.data.sources && result.data.sources.length > 0) {
+                    const sourceInfo = `Sources used: ${result.data.contextChunksUsed} chunks from ${result.data.sources[0].fileName}`;
+                    addChatMessage(sourceInfo, 'system');
+                }
+                
+            } catch (error) {
+                addChatMessage(`Error: ${error.message}`, 'system');
+                showAlert('chat-alert', `Chat failed: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading('chat-send-btn', false);
+            }
+        }
+
+        document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
+        
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+
+        // API key sync events
+        document.getElementById('import-api-key').addEventListener('input', () => syncApiKeys('import-api-key'));
+        document.getElementById('status-api-key').addEventListener('input', () => syncApiKeys('status-api-key'));
+        document.getElementById('chat-api-key').addEventListener('input', () => syncApiKeys('chat-api-key'));
+        
+        // Chat interface update events
+        document.getElementById('chat-api-key').addEventListener('input', updateChatInterface);
+        document.getElementById('chat-kb-id').addEventListener('input', updateChatInterface);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFileUpload();
+            updateChatInterface();
+        });
+    </script>
+</body>
+</html>

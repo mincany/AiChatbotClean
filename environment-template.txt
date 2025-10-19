@@ -1,0 +1,50 @@
+# Environment Variables Template
+# Copy this file to .env and fill in your actual values
+
+# =============================================================================
+# REQUIRED: External API Keys
+# =============================================================================
+
+# OpenAI API Key (required for text processing and embeddings)
+# Get from: https://platform.openai.com/api-keys
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Pinecone API Key (required for vector database)
+# Get from: https://app.pinecone.io/
+PINECONE_API_KEY=your-pinecone-api-key-here
+PINECONE_API_URL=https://chatbot-poc-xxxxx.svc.us-east-1-aws.pinecone.io
+PINECONE_ENVIRONMENT=us-east-1-aws
+PINECONE_PROJECT_ID=your-pinecone-project-id
+
+# =============================================================================
+# AWS CONFIGURATION
+# =============================================================================
+
+# AWS Credentials (required for S3, SQS, DynamoDB)
+AWS_ACCESS_KEY_ID=your-aws-access-key-id
+AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
+AWS_REGION=us-east-1
+
+# AWS Service Names
+AWS_S3_BUCKET_NAME=chatbot-knowledge-files
+AWS_SQS_KNOWLEDGE_QUEUE=knowledge-processing-queue
+
+# =============================================================================
+# LOCAL DEVELOPMENT (Optional - for LocalStack)
+# =============================================================================
+
+# Uncomment these for local development with LocalStack
+# AWS_ACCESS_KEY_ID=test
+# AWS_SECRET_ACCESS_KEY=test
+# AWS_SQS_ENDPOINT=http://localhost:4566
+# AWS_DYNAMODB_ENDPOINT=http://localhost:4566
+
+# =============================================================================
+# APPLICATION CONFIGURATION (Optional)
+# =============================================================================
+
+# Server port (default: 9090)
+# SERVER_PORT=9090
+
+# Log level (default: INFO)
+# LOGGING_LEVEL_COM_EXAMPLE_CHATBOT=DEBUG
