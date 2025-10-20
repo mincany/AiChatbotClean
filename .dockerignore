@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+README.md
+CLAUDE.md
+COMPREHENSIVE_TESTING_PLAN.md
+DEPLOYMENT_SETUP_GUIDE.md
+DYNAMODB_CONFIGURATION_SUMMARY.md
+LLM_RERANKING_AND_GUARDRAILS.md
+CI_CD_SETUP_GUIDE.md
+
+# Maven
+target/
+!target/chatbot-0.0.1-SNAPSHOT.jar
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Test files
+test_document.txt
+test_knowledge.txt
+
+# Scripts (not needed in container)
+scripts/
+setup-*.sh
+verify-setup.sh
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Documentation
+*.md
+docs/
+
+# GitHub
+.github/
