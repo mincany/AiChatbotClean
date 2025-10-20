@@ -29,30 +29,72 @@ info() {
     echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"
 }
 
-# Check if running on Ubuntu/Debian
-if ! command -v apt-get &> /dev/null; then
-    error "This script is designed for Ubuntu/Debian systems"
+# Check if running on supported systems
+if ! command -v apt-get &> /dev/null && ! command -v dnf &> /dev/null && ! command -v yum &> /dev/null; then
+    error "This script is designed for Ubuntu/Debian, Amazon Linux, or CentOS/RHEL systems"
     exit 1
 fi
+
+# Detect the package manager
+if command -v apt-get &> /dev/null; then
+    PACKAGE_MANAGER="apt"
+elif command -v dnf &> /dev/null; then
+    PACKAGE_MANAGER="dnf"
+elif command -v yum &> /dev/null; then
+    PACKAGE_MANAGER="yum"
+else
+    error "Unsupported package manager"
+    exit 1
+fi
+
+log "Detected package manager: $PACKAGE_MANAGER"
 
 log "Starting EC2 setup for chatbot application..."
 
 # Update system packages
 log "Updating system packages..."
-sudo apt-get update -y
-sudo apt-get upgrade -y
+if [ "$PACKAGE_MANAGER" = "apt" ]; then
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+elif [ "$PACKAGE_MANAGER" = "dnf" ]; then
+    sudo dnf update -y
+elif [ "$PACKAGE_MANAGER" = "yum" ]; then
+    sudo yum update -y
+fi
 
 # Install essential packages
 log "Installing essential packages..."
-sudo apt-get install -y \
-    curl \
-    wget \
-    git \
-    unzip \
-    jq \
-    htop \
-    vim \
-    ufw
+if [ "$PACKAGE_MANAGER" = "apt" ]; then
+    sudo apt-get install -y \
+        curl \
+        wget \
+        git \
+        unzip \
+        jq \
+        htop \
+        vim \
+        ufw
+elif [ "$PACKAGE_MANAGER" = "dnf" ]; then
+    sudo dnf install -y \
+        curl \
+        wget \
+        git \
+        unzip \
+        jq \
+        htop \
+        vim \
+        firewalld
+elif [ "$PACKAGE_MANAGER" = "yum" ]; then
+    sudo yum install -y \
+        curl \
+        wget \
+        git \
+        unzip \
+        jq \
+        htop \
+        vim \
+        firewalld
+fi
 
 # Install AWS CLI v2
 if ! command -v aws &> /dev/null; then
@@ -90,11 +132,21 @@ fi
 
 # Configure firewall
 log "Configuring firewall..."
-sudo ufw --force enable
-sudo ufw allow ssh
-sudo ufw allow 9090/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+if [ "$PACKAGE_MANAGER" = "apt" ]; then
+    sudo ufw --force enable
+    sudo ufw allow ssh
+    sudo ufw allow 9090/tcp
+    sudo ufw allow 80/tcp
+    sudo ufw allow 443/tcp
+elif [ "$PACKAGE_MANAGER" = "dnf" ] || [ "$PACKAGE_MANAGER" = "yum" ]; then
+    sudo systemctl start firewalld
+    sudo systemctl enable firewalld
+    sudo firewall-cmd --permanent --add-port=22/tcp
+    sudo firewall-cmd --permanent --add-port=9090/tcp
+    sudo firewall-cmd --permanent --add-port=80/tcp
+    sudo firewall-cmd --permanent --add-port=443/tcp
+    sudo firewall-cmd --reload
+fi
 log "Firewall configured"
 
 # Create application directory
