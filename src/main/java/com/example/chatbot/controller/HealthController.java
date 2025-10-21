@@ -30,7 +30,7 @@ public class HealthController {
     @GetMapping
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "UP");
+        response.put("status", "UP...");
         response.put("service", "chatbot-api");
         response.put("timestamp", LocalDateTime.now());
         response.put("message", "Service is healthy and running with DevTools enabled");
