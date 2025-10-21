@@ -83,7 +83,8 @@ elif [ "$PACKAGE_MANAGER" = "dnf" ]; then
         jq \
         htop \
         vim \
-        firewalld
+        firewalld \
+        cronie
 elif [ "$PACKAGE_MANAGER" = "yum" ]; then
     sudo yum install -y \
         curl \
@@ -93,7 +94,8 @@ elif [ "$PACKAGE_MANAGER" = "yum" ]; then
         jq \
         htop \
         vim \
-        firewalld
+        firewalld \
+        cronie
 fi
 
 # Install AWS CLI v2
@@ -284,13 +286,22 @@ EOF
 
 # Set up log monitoring
 log "Setting up log monitoring..."
-sudo tee /etc/rsyslog.d/50-docker.conf > /dev/null << EOF
-# Docker container logs
-:programname, isequal, "docker" /var/log/docker.log
-& stop
+# Amazon Linux 2023 uses systemd-journald instead of rsyslog
+# Configure journald for better Docker log handling
+sudo mkdir -p /etc/systemd/journald.conf.d
+sudo tee /etc/systemd/journald.conf.d/docker.conf > /dev/null << EOF
+[Journal]
+# Increase log storage
+SystemMaxUse=1G
+SystemMaxFileSize=100M
+# Keep logs for 30 days
+MaxRetentionSec=2592000
+# Forward to syslog if needed
+ForwardToSyslog=yes
 EOF
 
-sudo systemctl restart rsyslog
+# Restart journald to apply configuration
+sudo systemctl restart systemd-journald
 
 # Create backup script
 log "Creating backup script..."
@@ -309,7 +320,7 @@ tar -czf $BACKUP_DIR/$BACKUP_FILE \
     /opt/chatbot \
     /etc/systemd/system/chatbot-app.service \
     /etc/logrotate.d/docker-containers \
-    /etc/rsyslog.d/50-docker.conf
+    /etc/systemd/journald.conf.d/docker.conf
 
 echo "Backup created: $BACKUP_DIR/$BACKUP_FILE"
 
@@ -321,13 +332,16 @@ chmod +x $APP_DIR/backup.sh
 
 # Set up cron job for backups
 log "Setting up automated backups..."
+# Start and enable cron service
+sudo systemctl start crond
+sudo systemctl enable crond
 (crontab -l 2>/dev/null; echo "0 2 * * * $APP_DIR/backup.sh") | crontab -
 
 # Display system information
 log "EC2 setup completed successfully!"
 echo ""
 info "=== System Information ==="
-echo "OS: $(lsb_release -d | cut -f2)"
+echo "OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d'=' -f2 | tr -d '\"')"
 echo "Kernel: $(uname -r)"
 echo "Memory: $(free -h | awk '/^Mem:/ {print $2}')"
 echo "Disk: $(df -h / | awk 'NR==2 {print $4}')"
