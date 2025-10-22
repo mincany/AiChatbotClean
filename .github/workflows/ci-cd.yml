@@ -79,7 +79,8 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         
     - name: Output image URI
-      run: echo "Image URI: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+      run: |
+        echo "Image URI: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
 
   deploy-to-ec2:
     name: Deploy to EC2
