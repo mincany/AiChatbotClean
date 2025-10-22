@@ -109,6 +109,10 @@ jobs:
             sudo usermod -aG docker $USER
           fi
           
+          # Fix Docker networking issues on Amazon Linux 2023
+          sudo systemctl restart docker
+          sleep 5
+          
           # Install Docker Compose if not already installed
           if ! command -v docker-compose &> /dev/null; then
             sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -143,11 +147,27 @@ jobs:
             -e PINECONE_PROJECT_ID="${{ secrets.PINECONE_PROJECT_ID }}" \
             $IMAGE_URI
           
+          # Check if container started
+          echo "Container status:"
+          docker ps -a
+          
+          # Check container logs
+          echo "Container logs:"
+          docker logs chatbot-app
+          
           # Wait for application to start
           sleep 30
           
+          # Check container status again
+          echo "Container status after wait:"
+          docker ps -a
+          
           # Health check
-          curl -f http://localhost:9090/api/v1/health || exit 1
+          curl -f http://localhost:9090/api/v1/health || {
+            echo "Health check failed. Container logs:"
+            docker logs chatbot-app --tail 50
+            exit 1
+          }
           
           echo "Deployment completed successfully!"
 
