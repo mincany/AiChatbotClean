@@ -158,6 +158,16 @@ jobs:
           echo "Container status:"
           docker ps -a
           
+          # Debug: Check if environment variables are set (without showing values)
+          echo "Checking environment variables in container..."
+          docker exec chatbot-app env | grep -E "(OPENAI|PINECONE|AWS)" | sed 's/=.*/=***HIDDEN***/'
+          
+          # Debug: Check if secrets are being passed from GitHub
+          echo "Checking GitHub secrets availability..."
+          echo "OPENAI_API_KEY is set: $([ -n "${{ secrets.OPENAI_API_KEY }}" ] && echo "YES" || echo "NO")"
+          echo "PINECONE_API_KEY is set: $([ -n "${{ secrets.PINECONE_API_KEY }}" ] && echo "YES" || echo "NO")"
+          echo "PINECONE_API_URL is set: $([ -n "${{ secrets.PINECONE_API_URL }}" ] && echo "YES" || echo "NO")"
+          
           # Check container logs
           echo "Container logs:"
           docker logs chatbot-app
