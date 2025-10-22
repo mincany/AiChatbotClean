@@ -1,5 +1,5 @@
 # Multi-stage build for Spring Boot application
-FROM maven:3.8-openjdk-11 AS build
+FROM maven:3.8-openjdk-17 AS build
 
 # Set working directory
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM openjdk:11-jre
+FROM openjdk:17-jre
 
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
