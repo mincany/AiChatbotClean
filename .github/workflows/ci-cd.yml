@@ -98,13 +98,14 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # Update system packages
-          sudo apt-get update
+          # Update system packages (Amazon Linux 2023 uses dnf)
+          sudo dnf update -y
           
           # Install Docker if not already installed
           if ! command -v docker &> /dev/null; then
-            curl -fsSL https://get.docker.com -o get-docker.sh
-            sudo sh get-docker.sh
+            sudo dnf install -y docker
+            sudo systemctl start docker
+            sudo systemctl enable docker
             sudo usermod -aG docker $USER
           fi
           
@@ -114,15 +115,19 @@ jobs:
             sudo chmod +x /usr/local/bin/docker-compose
           fi
           
+          # Get ECR registry URL
+          ECR_REGISTRY=$(aws sts get-caller-identity --query Account --output text).dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          IMAGE_URI="$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest"
+          
           # Login to ECR
-          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
           
           # Stop existing container
           docker stop chatbot-app || true
           docker rm chatbot-app || true
           
           # Pull latest image
-          docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          docker pull $IMAGE_URI
           
           # Run new container
           docker run -d \
@@ -136,7 +141,7 @@ jobs:
             -e PINECONE_INDEX_NAME="${{ secrets.PINECONE_INDEX_NAME }}" \
             -e PINECONE_ENVIRONMENT="${{ secrets.PINECONE_ENVIRONMENT }}" \
             -e PINECONE_PROJECT_ID="${{ secrets.PINECONE_PROJECT_ID }}" \
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+            $IMAGE_URI
           
           # Wait for application to start
           sleep 30
