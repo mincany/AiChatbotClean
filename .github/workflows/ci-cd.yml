@@ -139,12 +139,19 @@ jobs:
             --restart unless-stopped \
             -p 9090:9090 \
             -e AWS_REGION=${{ env.AWS_REGION }} \
+            -e SERVER_PORT=9090 \
             -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
             -e PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
             -e PINECONE_API_URL="${{ secrets.PINECONE_API_URL }}" \
             -e PINECONE_INDEX_NAME="${{ secrets.PINECONE_INDEX_NAME }}" \
             -e PINECONE_ENVIRONMENT="${{ secrets.PINECONE_ENVIRONMENT }}" \
             -e PINECONE_PROJECT_ID="${{ secrets.PINECONE_PROJECT_ID }}" \
+            -e AWS_DYNAMODB_USERS_TABLE=chatbot-users \
+            -e AWS_DYNAMODB_KNOWLEDGE_TABLE=chatbot-knowledge \
+            -e AWS_DYNAMODB_CONVERSATIONS_TABLE=chatbot-conversations \
+            -e AWS_DYNAMODB_MESSAGES_TABLE=chatbot-messages \
+            -e AWS_S3_BUCKET_NAME=chatbot-knowledge-files \
+            -e AWS_SQS_QUEUE=knowledge-processing-queue \
             $IMAGE_URI
           
           # Check if container started
