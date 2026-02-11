@@ -75,6 +75,8 @@ if [ "$PACKAGE_MANAGER" = "apt" ]; then
         vim \
         ufw
 elif [ "$PACKAGE_MANAGER" = "dnf" ]; then
+    sudo dnf -y swap curl-minimal curl || true
+
     sudo dnf install -y \
         curl \
         wget \

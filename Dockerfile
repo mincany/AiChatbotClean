@@ -17,7 +17,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM openjdk:17-jdk-slim
+FROM amazoncorretto:17
 
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
