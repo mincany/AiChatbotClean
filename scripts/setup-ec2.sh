@@ -115,11 +115,20 @@ fi
 # Install Docker
 if ! command -v docker &> /dev/null; then
     log "Installing Docker..."
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-    sudo usermod -aG docker $USER
-    rm get-docker.sh
-    log "Docker installed successfully"
+
+    if [ "$PACKAGE_MANAGER" = "dnf" ] || [ "$PACKAGE_MANAGER" = "yum" ]; then
+        sudo yum install -y docker
+        sudo systemctl enable --now docker
+        sudo usermod -aG docker $USER
+        log "Docker installed successfully (Amazon Linux)"
+    else
+        # Ubuntu/Debian path (keep yours)
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sudo sh get-docker.sh
+        sudo usermod -aG docker $USER
+        rm get-docker.sh
+        log "Docker installed successfully"
+    fi
 else
     log "Docker is already installed"
 fi
